@@ -67,6 +67,9 @@ namespace TOHE.Roles.Neutral
         {
             Main.AllPlayerKillCooldown[id] = KillCooldown.GetFloat();
         }
+        
+        var pc = Utils.GetPlayerById(playerId);
+        pc?.AddDoubleTrigger();
 
         public override bool CanUseKillButton(PlayerControl pc) => true;
         public override bool CanUseImpostorVentButton(PlayerControl pc) => CanVent.GetBool();
@@ -74,18 +77,13 @@ namespace TOHE.Roles.Neutral
 
         public override bool OnCheckMurderAsKiller(PlayerControl killer, PlayerControl target)
         {
-            if (AbilityUses.GetInt() > 0)
-            {
-                // Ensure we use the ability only if the target is not already painted
-                if (!PlayerSkinsPainted[killer.PlayerId].Contains(target.PlayerId))
-                {
-                    SetPainting(killer, target);
-                    return true;
-                }
-                return false;
-            }
-            return true;
+             {
+        if (AbilityUses.GetInt() > 0)
+        {
+            return killer.CheckDoubleTrigger(target, () => { SetPainting(killer, target); });
         }
+        return true;
+    }
 
         private void SetPainting(PlayerControl killer, PlayerControl target)
         {
