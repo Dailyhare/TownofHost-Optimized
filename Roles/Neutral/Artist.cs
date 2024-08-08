@@ -57,7 +57,10 @@ namespace TOHE.Roles.Neutral
             PlayerIds.Add(playerId);
             PaintingTarget[playerId] = new List<byte>();
         }
-
+        
+        var pc = Utils.GetPlayerById(playerId);
+        pc?.AddDoubleTrigger();
+        
         public override void ApplyGameOptions(IGameOptions opt, byte id)
         {
             opt.SetVision(HasImpostorVision.GetBool());
@@ -72,20 +75,13 @@ namespace TOHE.Roles.Neutral
         public override bool CanUseImpostorVentButton(PlayerControl pc) => CanVent.GetBool();
         public override bool CanUseSabotage(PlayerControl pc) => false;
 
-        public override bool OnCheckMurderAsKiller(PlayerControl killer, PlayerControl target)
+    public override bool OnCheckMurderAsKiller(PlayerControl killer, PlayerControl target)
+    {
+        if (AbilityLimit > 0)
         {
-            if (AbilityUses.GetInt() > 0)
-            {
-                // Ensure we use the ability only if the target is not already painted
-                if (!PlayerSkinsPainted[killer.PlayerId].Contains(target.PlayerId))
-                {
-                    SetPainting(killer, target);
-                    return true;
-                }
-                return false;
-            }
-            return true;
+            return killer.CheckDoubleTrigger(target, () => { SetPainting(killer, target); });
         }
+        else return true;
 
         private void SetPainting(PlayerControl killer, PlayerControl target)
         {
