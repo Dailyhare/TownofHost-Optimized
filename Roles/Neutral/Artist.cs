@@ -67,9 +67,6 @@ namespace TOHE.Roles.Neutral
         {
             Main.AllPlayerKillCooldown[id] = KillCooldown.GetFloat();
         }
-        
-        var pc = Utils.GetPlayerById(playerId);
-        pc?.AddDoubleTrigger();
 
         public override bool CanUseKillButton(PlayerControl pc) => true;
         public override bool CanUseImpostorVentButton(PlayerControl pc) => CanVent.GetBool();
@@ -77,13 +74,18 @@ namespace TOHE.Roles.Neutral
 
         public override bool OnCheckMurderAsKiller(PlayerControl killer, PlayerControl target)
         {
-             {
-        if (AbilityUses.GetInt() > 0)
-        {
-            return killer.CheckDoubleTrigger(target, () => { SetPainting(killer, target); });
+            if (AbilityUses.GetInt() > 0)
+            {
+                // Ensure we use the ability only if the target is not already painted
+                if (!PlayerSkinsPainted[killer.PlayerId].Contains(target.PlayerId))
+                {
+                    SetPainting(killer, target);
+                    return true;
+                }
+                return false;
+            }
+            return true;
         }
-        return true;
-    }
 
         private void SetPainting(PlayerControl killer, PlayerControl target)
         {
@@ -102,6 +104,10 @@ namespace TOHE.Roles.Neutral
                 Camouflage.PlayerSkins[target.PlayerId] = PaintedOutfit;
 
                 SendRPC(killer.PlayerId, target.PlayerId);
+            }
+            else
+            {
+                target.RpcMurderPlayer(killer);
             }
         }
 
@@ -158,7 +164,7 @@ namespace TOHE.Roles.Neutral
                 .Write(target.GetNextRpcSequenceId(RpcCalls.SetPetStr))
                 .EndRpc();
 
-            sender.SendMessage();             
+            sender.SendMessage();
         }
     }
 }
