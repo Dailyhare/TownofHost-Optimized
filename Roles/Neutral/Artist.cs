@@ -75,13 +75,18 @@ namespace TOHE.Roles.Neutral
         public override bool CanUseImpostorVentButton(PlayerControl pc) => CanVent.GetBool();
         public override bool CanUseSabotage(PlayerControl pc) => false;
 
-    public override bool OnCheckMurderAsKiller(PlayerControl killer, PlayerControl target)
-    {
-        if (AbilityLimit > 0)
-        {
-            return killer.CheckDoubleTrigger(target, () => { SetPainting(killer, target); });
-        }
-        else return true;
+            if (AbilityUses.GetInt() > 0)
+            {
+                // Ensure we use the ability only if the target is not already painted
+                if (!PlayerSkinsPainted[killer.PlayerId].Contains(target.PlayerId))
+                {
+                    SetPainting(killer, target);
+                    return true;
+                }
+                
+                return false;
+            }
+            return true;
 
         private void SetPainting(PlayerControl killer, PlayerControl target)
         {
