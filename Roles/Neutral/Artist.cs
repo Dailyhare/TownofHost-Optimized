@@ -56,9 +56,6 @@ namespace TOHE.Roles.Neutral
             PlayerSkinsPainted[playerId] = new List<byte>();
             PlayerIds.Add(playerId);
             PaintingTarget[playerId] = new List<byte>();
-
-            var pc = Utils.GetPlayerById(playerId);
-            pc?.AddDoubleTrigger();
         }
 
         public override void ApplyGameOptions(IGameOptions opt, byte id)
@@ -77,25 +74,20 @@ namespace TOHE.Roles.Neutral
 
         public override bool OnCheckMurderAsKiller(PlayerControl killer, PlayerControl target)
         {
-            // Double-click to perform a kill
-            return killer.CheckDoubleTrigger(target, () => { 
-                if (AbilityUses.GetInt() > 0)
+            // If AbilityUses are available, only painting is allowed
+            if (AbilityUses.GetInt() > 0)
+            {
+                // Ensure we use the ability only if the target is not already painted
+                if (!PlayerSkinsPainted[killer.PlayerId].Contains(target.PlayerId))
                 {
-                    // Single click should be used for painting, not killing
-                    if (!PlayerSkinsPainted[killer.PlayerId].Contains(target.PlayerId))
-                    {
-                        SetPainting(killer, target);
-                        return true;
-                    }
+                    SetPainting(killer, target);
+                    return false; // Prevent normal kill
                 }
-                else
-                {
-                    // Perform normal kill if ability uses are exhausted
-                    return true;
-                }
+                return false; // No action if the target is already painted
+            }
 
-                return false;
-            });
+            // Normal kill when AbilityUses are exhausted
+            return true;
         }
 
         private void SetPainting(PlayerControl killer, PlayerControl target)
