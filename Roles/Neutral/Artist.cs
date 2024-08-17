@@ -1,4 +1,3 @@
-/*
 using AmongUs.GameOptions;
 using Hazel;
 using System.Collections.Generic;
@@ -188,4 +187,3 @@ namespace TOHE.Roles.Neutral
         private bool CanPaint(byte id) => AbilityLimit > 0;
     }
 }
-*/
