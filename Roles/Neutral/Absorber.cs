@@ -69,6 +69,8 @@ namespace TOHE.Roles.Neutral
 
         public override void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = NowCooldown[id];
 
+        public override bool CanUseKillButton(PlayerControl pc) => true; // Ensure this returns true
+
         public override bool OnCheckMurderAsTarget(PlayerControl killer, PlayerControl target)
         {
             if (killer == target || AbilityLimit <= 0) return true;
