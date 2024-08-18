@@ -9,7 +9,7 @@ namespace TOHE.Roles.Neutral
     {
         //===========================SETUP================================\\
         private const int Id = 311000;
-        public static bool HasEnabled => CustomRoleManager.HasEnabled(CustomRoles.CursedWolf);
+        public static bool HasEnabled => CustomRoleManager.HasEnabled(CustomRoles.Absorber);
         public override CustomRoles ThisRoleBase => CustomRoles.Impostor;
         public override Custom_RoleType ThisRoleType => Custom_RoleType.NeutralKilling;
         //==================================================================\\
