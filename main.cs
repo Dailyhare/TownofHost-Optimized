@@ -722,6 +722,7 @@ public enum CustomRoles
     Witness,
 
     //Neutral
+    Absorber,
     Agitater,
     Amnesiac,
     Arsonist,
@@ -961,6 +962,7 @@ public enum CustomWinner
     Assassin = CustomRoles.Assassin,
     Vaporizer = CustomRoles.Vaporizer,
     Keymaster = CustomRoles.Keymaster,
+    Absorber = CustomRoles.Absorber,
 }
 public enum AdditionalWinners
 {
