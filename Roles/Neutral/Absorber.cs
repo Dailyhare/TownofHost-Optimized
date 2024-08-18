@@ -65,29 +65,30 @@ namespace TOHE.Roles.Neutral
 
         public override void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = NowCooldown[id];
 
-public override bool OnCheckMurderAsTarget(PlayerControl killer, PlayerControl target)
-{
-    if (killer == target || AbilityLimit <= 0) return true;
-    if (killer.Is(CustomRoles.KillingMachine)) return true;
-    if (killer.Is(CustomRoles.Pestilence)) return true;
-    if (killer.Is(CustomRoles.Jinx)) return true;
-    if (killer.Is(CustomRoles.CursedWolf)) return true;
-    if (killer.Is(CustomRoles.Provocateur)) return true;
+        public override bool OnCheckMurderAsTarget(PlayerControl killer, PlayerControl target)
+        {
+            if (killer == target || AbilityLimit <= 0) return true;
+            if (killer.Is(CustomRoles.KillingMachine)) return true;
+            if (killer.Is(CustomRoles.Pestilence)) return true;
+            if (killer.Is(CustomRoles.Jinx)) return true;
+            if (killer.Is(CustomRoles.CursedWolf)) return true;
+            if (killer.Is(CustomRoles.Provocateur)) return true;
 
-    // Block the kill and apply cooldown adjustment
-    killer.RpcGuardAndKill(target);
-    target.RpcGuardAndKill(target);
+            // Block the kill and apply cooldown adjustment
+            killer.RpcGuardAndKill(target);
+            target.RpcGuardAndKill(target);
 
-    // Adjust the killer's cooldown
-    float newCooldown = Math.Clamp(NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat(), 0f, MaxKillCooldown.GetFloat());
-    NowCooldown[killer.PlayerId] = newCooldown;
-    killer.ResetKillCooldown();
-    killer.SyncSettings();
+            // Adjust the killer's cooldown
+            float newCooldown = Math.Clamp(NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat(), 0f, MaxKillCooldown.GetFloat());
+            NowCooldown[killer.PlayerId] = newCooldown;
+            killer.ResetKillCooldown();
+            killer.SyncSettings();
 
-    // Decrease ability limit and send the skill RPC
-    AbilityLimit -= 1;
-    SendSkillRPC();
+            // Decrease ability limit and send the skill RPC
+            AbilityLimit -= 1;
+            SendSkillRPC();
 
-    return true;
-}
+            return true;
+        }
+    }
 }
