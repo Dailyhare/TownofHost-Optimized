@@ -21,6 +21,10 @@ namespace TOHE.Roles.Neutral
         private static OptionItem CanVent;
         private static OptionItem ShieldTimes;
 
+
+        private static readonly Dictionary<byte, float> NowCooldown = [];
+
+        
         public override void SetupCustomOption()
         {
             SetupRoleOptions(Id, TabGroup.NeutralRoles, CustomRoles.Absorber);
@@ -38,7 +42,20 @@ namespace TOHE.Roles.Neutral
             CanVent = BooleanOptionItem.Create(Id + 14, GeneralOption.CanVent, true, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
         }
+    public override void Init()
+    {
+        playerIdList.Clear();
+        NowCooldown.Clear();
+    }
+    public override void Add(byte playerId)
+    {
+        playerIdList.Add(playerId);
+        NowCooldown.TryAdd(playerId, DefaultKillCooldown.GetFloat());
 
+        if (!Main.ResetCamPlayerList.Contains(playerId))
+            Main.ResetCamPlayerList.Add(playerId);
+    }
+        public override void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = NowCooldown[id];
         public override void Add(byte playerId)
         {
             AbilityLimit = ShieldTimes.GetInt();
