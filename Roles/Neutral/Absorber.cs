@@ -1,128 +1,68 @@
-using AmongUs.GameOptions;
-using Hazel;
-using System.Collections.Generic;
-using TOHE.Modules;
+﻿using AmongUs.GameOptions;
+using System;
 using TOHE.Roles.Core;
-usingstatic TOHE.Translator;
-usingstatic TOHE.Utils;
+using static TOHE.Options;
 
-namespaceTOHE.Roles.Neutral
+namespace TOHE.Roles.Neutral;
+
+internal class Absorber : RoleBase
 {
-    internalclassAbsorber : RoleBase
+    //===========================SETUP================================\\
+    private const int Id = 311000;
+    public static bool HasEnabled => CustomRoleManager.HasEnabled(CustomRoles.CursedWolf);
+    public override CustomRoles ThisRoleBase => CustomRoles.Impostor;
+    public override Custom_RoleType ThisRoleType => Custom_RoleType.NeutralKilling;
+    //==================================================================\\
+
+   
+    private static OptionItem DefaultKillCooldown;
+    private static OptionItem IncreaseKillCooldown;
+    private static OptionItem MaxKillCooldown;
+    private static OptionItem HasImpostorVision;
+    private static OptionItem CanVent; 
+    private static OptionItem ShieldTimes;
+
+
+    public override void SetupCustomOption()
     {
-        privateconstint Id = 2320000; // Unique ID for the Absorber roleprivatestaticreadonly HashSet<byte> MarkedPlayers = new HashSet<byte>(); // Players marked for absorbingpublicstaticbool HasEnabled => CustomRoleManager.HasEnabled(CustomRoles.Absorber);
+        SetupRoleOptions(Id, TabGroup.NeutralRoles, CustomRoles.Absorber);
+        ShieldTimes = IntegerOptionItem.Create(Id + 10, "AbsorberShieldTimes", new(1, 15, 1), 2, TabGroup.NeutralRoles, false)
+            .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
+            .SetValueFormat(OptionFormat.Times);
+        IncreaseKillCooldown = FloatOptionItem.Create(Id + 11, GeneralOption.IncreaseKillCooldown, new(2.5f, 180f, 2.5f), 15f, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
+            .SetValueFormat(OptionFormat.Seconds);
+        MaxKillCooldown = FloatOptionItem.Create(Id + 12, GeneralOption.MaxKillCooldown, new(0f, 180f, 2.5f), 2.5f, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
+            .SetValueFormat(OptionFormat.Seconds);
+        HasImpostorVision = BooleanOptionItem.Create(Id + 13, GeneralOption.ImpostorVision, true, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
+        CanVent = BooleanOptionItem.Create(Id + 14, GeneralOption.CanVent, true, TabGroup.NeutralRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
+    }
+    public override void Add(byte playerId)
+    {
+        AbilityLimit = ShieldTimes.GetInt();
+    }
+    public override bool OnCheckMurderAsTarget(PlayerControl killer, PlayerControl target)
+    {
+        if (killer == target || AbilityLimit <= 0) return true;
+        if (killer.Is(CustomRoles.KillingMachine)) return true;
+        if (killer.Is(CustomRoles.Pestilence)) return true;
+        if (killer.Is(CustomRoles.Jinx)) return true;
+        if (killer.Is(CustomRoles.CursedWolf)) return true;
+        if (killer.Is(CustomRoles.Provocateur)) return true; 
 
-        publicoverride CustomRoles ThisRoleBase => CustomRoles.Impostor;
-        publicoverride Custom_RoleType ThisRoleType => Custom_RoleType.NeutralKilling;
+        killer.RpcGuardAndKill(target);
+        target.RpcGuardAndKill(target);
 
-        privatestatic OptionItem AbsorberKillCooldown;
-        privatestatic OptionItem AbsorberMarkCooldown;
-        privatestatic OptionItem AbsorberAbilityUses;
+        NowCooldown[killer.PlayerId] = Math.Clamp(NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat(), MaxKillCooldown.GetFloat(), DefaultKillCooldown.GetFloat());
+        killer.ResetKillCooldown();
+        killer.SyncSettings();
+        return true;
+        
+        AbilityLimit -= 1;
+        SendSkillRPC();
 
-        publicoverridevoidSetupCustomOption()
-        {
-            Options.SetupRoleOptions(Id, TabGroup.NeutralRoles, CustomRoles.Absorber);
-            AbsorberKillCooldown = FloatOptionItem.Create(Id + 10, GeneralOption.KillCooldown, new(0f, 180f, 2.5f), 30f, TabGroup.NeutralRoles, false)
-                .SetParent(Options.CustomRoleSpawnChances[CustomRoles.Absorber]);
-            AbsorberMarkCooldown = FloatOptionItem.Create(Id + 11, "AbsorberMarkCooldown", new(0f, 180f, 2.5f), 15f, TabGroup.NeutralRoles, false)
-                .SetParent(Options.CustomRoleSpawnChances[CustomRoles.Absorber]);
-            AbsorberAbilityUses = IntegerOptionItem.Create(Id + 12, "AbilityUses", new(0, 15, 1), 3, TabGroup.NeutralRoles, false)
-                .SetParent(Options.CustomRoleSpawnChances[CustomRoles.Absorber])
-                .SetValueFormat(OptionFormat.Times);
-        }
-
-        publicoverridevoidInit()
-        {
-            MarkedPlayers.Clear();
-        }
-
-        publicoverridevoidAdd(byte playerId)
-        {
-            AbilityLimit = AbsorberAbilityUses.GetInt();
-            MarkedPlayers.Clear(); // Reset marked players for new game
-        }
-
-        publicoverridevoidSetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = AbsorberKillCooldown.GetFloat();
-        publicoverrideboolCanUseKillButton(PlayerControl pc) => true;
-        publicoverrideboolCanUseImpostorVentButton(PlayerControl pc) => false;
-        publicoverrideboolCanUseSabotage(PlayerControl pc) => false;
-
-        publicoverridevoidApplyGameOptions(IGameOptions opt, byte id)
-        {
-            opt.SetVision(true); // Default impostor vision option
-        }
-
-        publicoverrideboolOnCheckMurderAsKiller(PlayerControl killer, PlayerControl target)
-        {
-            if (killer == null || target == null) returntrue;
-            if (AbilityLimit <= 0) returntrue;
-
-            if (MarkedPlayers.Contains(target.PlayerId))
-            {
-                _ = new LateTask(() => { killer.SetKillCooldown(AbsorberKillCooldown.GetFloat()); }, 0.1f, "Absorber set kcd");
-                returntrue;
-            }
-            else
-            {
-                return killer.CheckDoubleTrigger(target, () => 
-                { 
-                    AbilityLimit -= 1;
-                    MarkPlayer(target);
-                    killer.SetKillCooldown(AbsorberMarkCooldown.GetFloat());
-                    Utils.NotifyRoles(SpecifySeer: killer, SpecifyTarget: target);
-                });
-            }
-        }
-
-        privatevoidMarkPlayer(PlayerControl target)
-        {
-            if (!MarkedPlayers.Contains(target.PlayerId))
-            {
-                MarkedPlayers.Add(target.PlayerId);
-                target.Notify(Utils.ColorString(Utils.GetRoleColor(CustomRoles.Absorber), GetString("AbsorberMarked")));
-
-                SendRPC(_Player.PlayerId, target.PlayerId);
-
-                Logger.Info($"Player {target.GetNameWithRole()} marked by absorber {_Player.GetNameWithRole()}", "Absorber");
-            }
-        }
-
-        privatestaticvoidSendRPC(byte playerId, byte targetId)
-        {
-            MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.SyncRoleSkill, SendOption.Reliable, -1);
-            writer.Write(playerId);
-            writer.Write(targetId);
-            AmongUsClient.Instance.FinishRpcImmediately(writer);
-        }
-
-        publicoverridevoidReceiveRPC(MessageReader reader, PlayerControl NaN)
-        {
-            byte playerId = reader.ReadByte();
-            byte targetId = reader.ReadByte();
-            if (!MarkedPlayers.Contains(targetId))
-            {
-                MarkedPlayers.Add(targetId);
-            }
-        }
-
-        publicoverridestringGetProgressText(byte playerId, bool comms) 
-            => Utils.ColorString(CanMark(playerId) ? Utils.GetRoleColor(CustomRoles.Absorber).ShadeColor(0.25f) : Color.gray, $"({AbilityLimit})");
-
-        privateboolCanMark(byte id) => AbilityLimit > 0;
-
-        publicoverridevoidOnOthersTaskComplete(PlayerControl player, PlayerTask task)
-        {
-            if (player == null || _Player == null) return;
-            if (!player.IsAlive()) return;
-            byte playerId = player.PlayerId;
-
-            if (MarkedPlayers.Contains(playerId))
-            {
-                player.SetDeathReason(PlayerState.DeathReason.Suicide);
-                player.RpcMurderPlayer(player);
-                Logger.Info($"Player {player.GetNameWithRole()} died because they were marked by { _Player.GetNameWithRole() }", "Absorber");
-            }
-        }
+        public override bool CanUseImpostorVentButton(PlayerControl pc) => CanVent.GetBool();
+        public override bool CanUseKillButton(PlayerControl pc) => true;
+        public override void ApplyGameOptions(IGameOptions opt, byte playerId) => opt.SetVision(HasImpostorVision.GetBool());
     }
 }
     
