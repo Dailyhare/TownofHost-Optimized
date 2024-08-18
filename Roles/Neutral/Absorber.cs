@@ -1,4 +1,4 @@
-﻿﻿using AmongUs.GameOptions;
+using AmongUs.GameOptions;
 using System;
 using TOHE.Roles.Core;
 using static TOHE.Options;
@@ -27,18 +27,22 @@ namespace TOHE.Roles.Neutral
         public override void SetupCustomOption()
         {
             SetupRoleOptions(Id, TabGroup.NeutralRoles, CustomRoles.Absorber);
-            ShieldTimes = IntegerOptionItem.Create(Id + 10, "AbsorberShieldTimes", new(1, 15, 1), 2, TabGroup.NeutralRoles, false)
+            ShieldTimes = IntegerOptionItem.Create(Id + 10, "AbsorberShieldTimes", new IntRange(1, 15), 2, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Times);
-            IncreaseKillCooldown = FloatOptionItem.Create(Id + 11, GeneralOption.IncreaseKillCooldown, new(2.5f, 180f, 2.5f), 15f, TabGroup.NeutralRoles, false)
+
+            IncreaseKillCooldown = FloatOptionItem.Create(Id + 11, "IncreaseKillCooldown", new FloatRange(2.5f, 180f), 15f, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Seconds);
-            MaxKillCooldown = FloatOptionItem.Create(Id + 12, GeneralOption.MaxKillCooldown, new(0f, 180f, 2.5f), 2.5f, TabGroup.NeutralRoles, false)
+
+            MaxKillCooldown = FloatOptionItem.Create(Id + 12, "MaxKillCooldown", new FloatRange(0f, 180f), 2.5f, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Seconds);
-            HasImpostorVision = BooleanOptionItem.Create(Id + 13, GeneralOption.ImpostorVision, true, TabGroup.NeutralRoles, false)
+
+            HasImpostorVision = BooleanOptionItem.Create(Id + 13, "ImpostorVision", true, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
-            CanVent = BooleanOptionItem.Create(Id + 14, GeneralOption.CanVent, true, TabGroup.NeutralRoles, false)
+
+            CanVent = BooleanOptionItem.Create(Id + 14, "CanVent", true, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
         }
 
@@ -50,15 +54,12 @@ namespace TOHE.Roles.Neutral
 
         public override void Add(byte playerId)
         {
-            // Add player to the playerIdList and initialize their cooldown
             playerIdList.Add(playerId);
             NowCooldown.TryAdd(playerId, DefaultKillCooldown.GetFloat());
 
-            // Check if the player should be added to ResetCamPlayerList
             if (!Main.ResetCamPlayerList.Contains(playerId))
                 Main.ResetCamPlayerList.Add(playerId);
 
-            // Update the ability limit
             AbilityLimit = ShieldTimes.GetInt();
         }
 
