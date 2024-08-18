@@ -27,15 +27,15 @@ namespace TOHE.Roles.Neutral
         public override void SetupCustomOption()
         {
             SetupRoleOptions(Id, TabGroup.NeutralRoles, CustomRoles.Absorber);
-            ShieldTimes = IntegerOptionItem.Create(Id + 10, "AbsorberShieldTimes", new IntRange(1, 15), 2, TabGroup.NeutralRoles, false)
+            ShieldTimes = IntegerOptionItem.Create(Id + 10, "AbsorberShieldTimes", new IntegerValueRule(1, 15, 1), 2, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Times);
 
-            IncreaseKillCooldown = FloatOptionItem.Create(Id + 11, "IncreaseKillCooldown", new FloatRange(2.5f, 180f), 15f, TabGroup.NeutralRoles, false)
+            IncreaseKillCooldown = FloatOptionItem.Create(Id + 11, "IncreaseKillCooldown", new FloatValueRule(2.5f, 180f, 2.5f), 15f, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Seconds);
 
-            MaxKillCooldown = FloatOptionItem.Create(Id + 12, "MaxKillCooldown", new FloatRange(0f, 180f), 2.5f, TabGroup.NeutralRoles, false)
+            MaxKillCooldown = FloatOptionItem.Create(Id + 12, "MaxKillCooldown", new FloatValueRule(0f, 180f, 2.5f), 2.5f, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Seconds);
 
@@ -92,3 +92,4 @@ namespace TOHE.Roles.Neutral
         }
     }
 }
+
