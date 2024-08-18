@@ -21,10 +21,9 @@ namespace TOHE.Roles.Neutral
         private static OptionItem CanVent;
         private static OptionItem ShieldTimes;
 
+        private static readonly Dictionary<byte, float> NowCooldown = new();
+        private static readonly List<byte> playerIdList = new();
 
-        private static readonly Dictionary<byte, float> NowCooldown = [];
-
-        
         public override void SetupCustomOption()
         {
             SetupRoleOptions(Id, TabGroup.NeutralRoles, CustomRoles.Absorber);
@@ -42,24 +41,28 @@ namespace TOHE.Roles.Neutral
             CanVent = BooleanOptionItem.Create(Id + 14, GeneralOption.CanVent, true, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
         }
-    public override void Init()
-    {
-        playerIdList.Clear();
-        NowCooldown.Clear();
-    }
-    public override void Add(byte playerId)
-    {
-        playerIdList.Add(playerId);
-        NowCooldown.TryAdd(playerId, DefaultKillCooldown.GetFloat());
 
-        if (!Main.ResetCamPlayerList.Contains(playerId))
-            Main.ResetCamPlayerList.Add(playerId);
-    }
-        public override void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = NowCooldown[id];
+        public override void Init()
+        {
+            playerIdList.Clear();
+            NowCooldown.Clear();
+        }
+
         public override void Add(byte playerId)
         {
+            // Add player to the playerIdList and initialize their cooldown
+            playerIdList.Add(playerId);
+            NowCooldown.TryAdd(playerId, DefaultKillCooldown.GetFloat());
+
+            // Check if the player should be added to ResetCamPlayerList
+            if (!Main.ResetCamPlayerList.Contains(playerId))
+                Main.ResetCamPlayerList.Add(playerId);
+
+            // Update the ability limit
             AbilityLimit = ShieldTimes.GetInt();
         }
+
+        public override void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = NowCooldown[id];
 
         public override bool OnCheckMurderAsTarget(PlayerControl killer, PlayerControl target)
         {
