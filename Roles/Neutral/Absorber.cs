@@ -99,7 +99,7 @@ namespace TOHE.Roles.Neutral
             // Block the kill
             killer.RpcGuardAndKill(target);
             target.RpcGuardAndKill(target);
-
+        } 
             // Increase the killer's cooldown
             if (NowCooldown.ContainsKey(killer.PlayerId))
             {
@@ -115,5 +115,5 @@ namespace TOHE.Roles.Neutral
 
             return true;
         }
-    }
+    
 }
