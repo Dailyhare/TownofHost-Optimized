@@ -61,7 +61,6 @@ namespace TOHE.Roles.Neutral
         public override void Add(byte playerId)
         {
             playerIdList.Add(playerId);
-            // Initialize the cooldown for the player if not already present
             if (!NowCooldown.ContainsKey(playerId))
             {
                 NowCooldown[playerId] = DefaultKillCooldown.GetFloat();
@@ -88,10 +87,10 @@ namespace TOHE.Roles.Neutral
             if (killer == target || AbilityLimit <= 0) return true;
 
             // Check if the killer's role should bypass the absorber's shield
-            if (killer.Is(CustomRoles.KillingMachine) || 
-                killer.Is(CustomRoles.Pestilence) || 
-                killer.Is(CustomRoles.Jinx) || 
-                killer.Is(CustomRoles.CursedWolf) || 
+            if (killer.Is(CustomRoles.KillingMachine) ||
+                killer.Is(CustomRoles.Pestilence) ||
+                killer.Is(CustomRoles.Jinx) ||
+                killer.Is(CustomRoles.CursedWolf) ||
                 killer.Is(CustomRoles.Provocateur))
             {
                 return true;
@@ -110,7 +109,7 @@ namespace TOHE.Roles.Neutral
                 killer.SyncSettings();
             }
 
-            // Decrease ability limit
+            // Decrease ability limit and send the skill RPC
             AbilityLimit -= 1;
             SendSkillRPC();
 
