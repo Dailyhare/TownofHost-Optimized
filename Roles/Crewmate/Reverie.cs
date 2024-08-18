@@ -1,100 +1,98 @@
-using AmongUs.GameOptions;
 using System;
-using TOHE.Roles.Core;
+using AmongUs.GameOptions;
 using static TOHE.Options;
 
-namespace TOHE.Roles.Neutral
+namespace TOHE.Roles.Crewmate;
+
+internal class Reverie : RoleBase
 {
-    internal class Absorber : RoleBase
+    //===========================SETUP================================\\
+    private const int Id = 11100;
+    private static readonly HashSet<byte> playerIdList = [];
+    public static bool HasEnabled => playerIdList.Any();
+    
+    public override CustomRoles ThisRoleBase => CustomRoles.Impostor;
+    public override Custom_RoleType ThisRoleType => Custom_RoleType.CrewmateKilling;
+    //==================================================================\\
+
+    private static OptionItem DefaultKillCooldown;
+    private static OptionItem ReduceKillCooldown;
+    private static OptionItem IncreaseKillCooldown;
+    private static OptionItem MinKillCooldown;
+    private static OptionItem MaxKillCooldown;
+    private static OptionItem MisfireSuicide;
+    private static OptionItem ResetCooldownMeeting;
+    private static OptionItem ConvertedReverieRogue;
+
+    private static readonly Dictionary<byte, float> NowCooldown = [];
+
+    public override void SetupCustomOption()
     {
-        //===========================SETUP================================\\
-        private const int Id = 311000;
-        public static bool HasEnabled => CustomRoleManager.HasEnabled(CustomRoles.Absorber);
-        public override CustomRoles ThisRoleBase => CustomRoles.Impostor;
-        public override Custom_RoleType ThisRoleType => Custom_RoleType.NeutralKilling;
-        //==================================================================\\
+        SetupRoleOptions(Id, TabGroup.CrewmateRoles, CustomRoles.Reverie);
+        DefaultKillCooldown = FloatOptionItem.Create(Id + 10, GeneralOption.DefaultKillCooldown, new(0f, 180f, 2.5f), 30f, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Reverie])
+            .SetValueFormat(OptionFormat.Seconds);
+        ReduceKillCooldown = FloatOptionItem.Create(Id + 11, GeneralOption.ReduceKillCooldown, new(0f, 180f, 2.5f), 7.5f, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Reverie])
+            .SetValueFormat(OptionFormat.Seconds);
+        MinKillCooldown = FloatOptionItem.Create(Id + 12, GeneralOption.MinKillCooldown, new(0f, 180f, 2.5f), 2.5f, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Reverie])
+            .SetValueFormat(OptionFormat.Seconds);
+        IncreaseKillCooldown = FloatOptionItem.Create(Id + 13, "ReverieIncreaseKillCooldown", new(0f, 180f, 2.5f), 5f, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Reverie])
+            .SetValueFormat(OptionFormat.Seconds);
+        MaxKillCooldown = FloatOptionItem.Create(Id + 14, "ReverieMaxKillCooldown", new(0f, 180f, 2.5f), 40f, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Reverie])
+            .SetValueFormat(OptionFormat.Seconds);
+        MisfireSuicide =  BooleanOptionItem.Create(Id + 15, "ReverieMisfireSuicide", true, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Reverie]);
+        ResetCooldownMeeting =  BooleanOptionItem.Create(Id + 16, "ReverieResetCooldownMeeting", false, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Reverie]);
+        ConvertedReverieRogue = BooleanOptionItem.Create(Id + 17, "ConvertedReverieKillAll", true, TabGroup.CrewmateRoles, false).SetParent(CustomRoleSpawnChances[CustomRoles.Reverie]);
+    }
+    public override void Init()
+    {
+        playerIdList.Clear();
+        NowCooldown.Clear();
+    }
+    public override void Add(byte playerId)
+    {
+        playerIdList.Add(playerId);
+        NowCooldown.TryAdd(playerId, DefaultKillCooldown.GetFloat());
 
-        private static OptionItem DefaultKillCooldown;
-        private static OptionItem IncreaseKillCooldown;
-        private static OptionItem MaxKillCooldown;
-        private static OptionItem HasImpostorVision;
-        private static OptionItem CanVent;
-        private static OptionItem ShieldTimes;
-
-        private static readonly Dictionary<byte, float> NowCooldown = new();
-        private static readonly List<byte> playerIdList = new();
-
-        public override void SetupCustomOption()
+        if (!Main.ResetCamPlayerList.Contains(playerId))
+            Main.ResetCamPlayerList.Add(playerId);
+    }
+    public override void Remove(byte playerId)
+    {
+        playerIdList.Remove(playerId);
+        NowCooldown.Remove(playerId);
+    }
+    public override void OnReportDeadBody(PlayerControl HES, NetworkedPlayerInfo HIM)
+    {
+        foreach (var playerId in NowCooldown.Keys)
         {
-            SetupRoleOptions(Id, TabGroup.NeutralRoles, CustomRoles.Absorber);
-            ShieldTimes = IntegerOptionItem.Create(Id + 10, "AbsorberShieldTimes", new IntegerValueRule(1, 15, 1), 2, TabGroup.NeutralRoles, false)
-                .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
-                .SetValueFormat(OptionFormat.Times);
-
-            DefaultKillCooldown = FloatOptionItem.Create(Id + 11, "DefaultKillCooldown", new FloatValueRule(0f, 180f, 2.5f), 30f, TabGroup.NeutralRoles, false)
-                .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
-                .SetValueFormat(OptionFormat.Seconds);
-
-            IncreaseKillCooldown = FloatOptionItem.Create(Id + 12, "IncreaseKillCooldown", new FloatValueRule(2.5f, 180f, 2.5f), 15f, TabGroup.NeutralRoles, false)
-                .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
-                .SetValueFormat(OptionFormat.Seconds);
-
-            MaxKillCooldown = FloatOptionItem.Create(Id + 13, "MaxKillCooldown", new FloatValueRule(0f, 180f, 2.5f), 2.5f, TabGroup.NeutralRoles, false)
-                .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
-                .SetValueFormat(OptionFormat.Seconds);
-
-            HasImpostorVision = BooleanOptionItem.Create(Id + 14, "ImpostorVision", true, TabGroup.NeutralRoles, false)
-                .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
-
-            CanVent = BooleanOptionItem.Create(Id + 15, "CanVent", true, TabGroup.NeutralRoles, false)
-                .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
+            if (ResetCooldownMeeting.GetBool())
+            {
+                NowCooldown[playerId] = DefaultKillCooldown.GetFloat();
+            }
         }
+    }
+    public override void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = NowCooldown[id];
+    public override bool CanUseImpostorVentButton(PlayerControl pc) => false;
+    public override bool CanUseKillButton(PlayerControl pc) => true;
+    public override bool CanUseSabotage(PlayerControl pc) => false;
 
-        public override void Init()
+    public override void ApplyGameOptions(IGameOptions opt, byte playerId) => opt.SetVision(false);
+    public override bool OnCheckMurderAsKiller(PlayerControl killer,PlayerControl target)
+    {
+        if (killer == null || target == null) return true;
+
+        float kcd;
+        if ((!target.GetCustomRole().IsCrewmate() && !target.Is(CustomRoles.Trickster)) || (ConvertedReverieRogue.GetBool() && killer.GetCustomSubRoles().Any(subrole => subrole.IsConverted() || subrole == CustomRoles.Madmate))) // if killed non crew or if converted
+                kcd = NowCooldown[killer.PlayerId] - ReduceKillCooldown.GetFloat();
+        else kcd = NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat();
+        NowCooldown[killer.PlayerId] = Math.Clamp(kcd, MinKillCooldown.GetFloat(), MaxKillCooldown.GetFloat());
+        killer.ResetKillCooldown();
+        killer.SyncSettings();
+        if (NowCooldown[killer.PlayerId] >= MaxKillCooldown.GetFloat() && MisfireSuicide.GetBool())
         {
-            playerIdList.Clear();
-            NowCooldown.Clear();
+            Main.PlayerStates[killer.PlayerId].deathReason = PlayerState.DeathReason.Misfire;
+            killer.RpcMurderPlayer(killer);
         }
-
-        public override void Add(byte playerId)
-        {
-            playerIdList.Add(playerId);
-            NowCooldown.TryAdd(playerId, DefaultKillCooldown.GetFloat());
-
-            if (!Main.ResetCamPlayerList.Contains(playerId))
-                Main.ResetCamPlayerList.Add(playerId);
-
-            AbilityLimit = ShieldTimes.GetInt();
-        }
-
-        public override void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = NowCooldown[id];
-
-        public override bool CanUseKillButton(PlayerControl pc) => true; // Ensure this returns true
-
-        public override bool OnCheckMurderAsTarget(PlayerControl killer, PlayerControl target)
-        {
-            if (killer == target || AbilityLimit <= 0) return true;
-            if (killer.Is(CustomRoles.KillingMachine)) return true;
-            if (killer.Is(CustomRoles.Pestilence)) return true;
-            if (killer.Is(CustomRoles.Jinx)) return true;
-            if (killer.Is(CustomRoles.CursedWolf)) return true;
-            if (killer.Is(CustomRoles.Provocateur)) return true;
-
-            // Block the kill and apply cooldown adjustment
-            killer.RpcGuardAndKill(target);
-            target.RpcGuardAndKill(target);
-
-            // Adjust the killer's cooldown
-            float newCooldown = Math.Clamp(NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat(), 0f, MaxKillCooldown.GetFloat());
-            NowCooldown[killer.PlayerId] = newCooldown;
-            killer.ResetKillCooldown();
-            killer.SyncSettings();
-
-            // Decrease ability limit and send the skill RPC
-            AbilityLimit -= 1;
-            SendSkillRPC();
-
-            return true;
-        }
+        return true;
     }
 }
