@@ -31,18 +31,22 @@ namespace TOHE.Roles.Neutral
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Times);
 
-            IncreaseKillCooldown = FloatOptionItem.Create(Id + 11, "IncreaseKillCooldown", new FloatValueRule(2.5f, 180f, 2.5f), 15f, TabGroup.NeutralRoles, false)
+            DefaultKillCooldown = FloatOptionItem.Create(Id + 11, "DefaultKillCooldown", new FloatValueRule(0f, 180f, 2.5f), 30f, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Seconds);
 
-            MaxKillCooldown = FloatOptionItem.Create(Id + 12, "MaxKillCooldown", new FloatValueRule(0f, 180f, 2.5f), 2.5f, TabGroup.NeutralRoles, false)
+            IncreaseKillCooldown = FloatOptionItem.Create(Id + 12, "IncreaseKillCooldown", new FloatValueRule(2.5f, 180f, 2.5f), 15f, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Seconds);
 
-            HasImpostorVision = BooleanOptionItem.Create(Id + 13, "ImpostorVision", true, TabGroup.NeutralRoles, false)
+            MaxKillCooldown = FloatOptionItem.Create(Id + 13, "MaxKillCooldown", new FloatValueRule(0f, 180f, 2.5f), 2.5f, TabGroup.NeutralRoles, false)
+                .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
+                .SetValueFormat(OptionFormat.Seconds);
+
+            HasImpostorVision = BooleanOptionItem.Create(Id + 14, "ImpostorVision", true, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
 
-            CanVent = BooleanOptionItem.Create(Id + 14, "CanVent", true, TabGroup.NeutralRoles, false)
+            CanVent = BooleanOptionItem.Create(Id + 15, "CanVent", true, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
         }
 
@@ -92,4 +96,3 @@ namespace TOHE.Roles.Neutral
         }
     }
 }
-
