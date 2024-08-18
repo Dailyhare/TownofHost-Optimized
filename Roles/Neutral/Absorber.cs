@@ -85,7 +85,7 @@ namespace TOHE.Roles.Neutral
             target.RpcGuardAndKill(target);
 
             // Adjust the killer's cooldown
-            float newCooldown = Math.Clamp(NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat(), 0f, MaxKillCooldown.GetFloat());
+            float newCooldown = Math.Clamp(NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat(), 10f, MaxKillCooldown.GetFloat());
             NowCooldown[killer.PlayerId] = newCooldown;
             killer.ResetKillCooldown();
             killer.SyncSettings();
