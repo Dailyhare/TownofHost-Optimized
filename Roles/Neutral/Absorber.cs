@@ -98,3 +98,4 @@ namespace TOHE.Roles.Neutral
             return true;
         }
     }
+}
