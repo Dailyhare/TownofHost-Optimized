@@ -78,7 +78,7 @@ namespace TOHE.Roles.Neutral
             
            
             float newCooldown = Math.Clamp(NowCooldown[target.PlayerId] + IncreaseKillCooldown.GetFloat(), MaxKillCooldown.GetFloat(), MaxKillCooldown.GetFloat());
-            NowCooldown[killer.PlayerId] = newCooldown;
+            NowCooldown[target.PlayerId] = newCooldown;
             target.ResetKillCooldown();
             target.SyncSettings();
 
