@@ -64,7 +64,7 @@ namespace TOHE.Roles.Neutral
 
         public override void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = NowCooldown[id];
         public override bool CanUseKillButton(PlayerControl pc) => true; 
-        public override bool OnCheckMurderAsTarget(PlayerControl killer, PlayerControl target)
+        public override bool OnCheckMurderAsKiller(PlayerControl killer, PlayerControl target)
         {
             if (killer == target || AbilityLimit <= 0) return true;
             if (killer.Is(CustomRoles.KillingMachine)) return true;
@@ -77,10 +77,10 @@ namespace TOHE.Roles.Neutral
             target.RpcGuardAndKill(target);
             
            
-            float newCooldown = Math.Clamp(NowCooldown[target.PlayerId] + IncreaseKillCooldown.GetFloat(), MaxKillCooldown.GetFloat(), MaxKillCooldown.GetFloat());
-            NowCooldown[target.PlayerId] = newCooldown;
-            target.ResetKillCooldown();
-            target.SyncSettings();
+            float newCooldown = Math.Clamp(NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat(), MaxKillCooldown.GetFloat(), MaxKillCooldown.GetFloat());
+            NowCooldown[killer.PlayerId] = newCooldown;
+            killer.ResetKillCooldown();
+            killer.SyncSettings();
 
             AbilityLimit -= 1;
             SendSkillRPC();
