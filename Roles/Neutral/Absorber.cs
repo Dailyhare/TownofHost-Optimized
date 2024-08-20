@@ -27,26 +27,20 @@ namespace TOHE.Roles.Neutral
         public override void SetupCustomOption()
         {
             SetupRoleOptions(Id, TabGroup.NeutralRoles, CustomRoles.Absorber);
-
             ShieldTimes = IntegerOptionItem.Create(Id + 10, "AbsorberShieldTimes", new IntegerValueRule(1, 15, 1), 2, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Times);
-
             DefaultKillCooldown = FloatOptionItem.Create(Id + 11, "DefaultKillCooldown", new FloatValueRule(0f, 180f, 2.5f), 30f, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Seconds);
-
             IncreaseKillCooldown = FloatOptionItem.Create(Id + 12, "IncreaseKillCooldown", new FloatValueRule(2.5f, 180f, 2.5f), 15f, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Seconds);
-
             MaxKillCooldown = FloatOptionItem.Create(Id + 13, "MaxKillCooldown", new FloatValueRule(0f, 180f, 2.5f), 2.5f, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber])
                 .SetValueFormat(OptionFormat.Seconds);
-
             HasImpostorVision = BooleanOptionItem.Create(Id + 14, "ImpostorVision", true, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
-
             CanVent = BooleanOptionItem.Create(Id + 15, "CanVent", true, TabGroup.NeutralRoles, false)
                 .SetParent(CustomRoleSpawnChances[CustomRoles.Absorber]);
         }
@@ -69,9 +63,7 @@ namespace TOHE.Roles.Neutral
         }
 
         public override void SetKillCooldown(byte id) => Main.AllPlayerKillCooldown[id] = NowCooldown[id];
-
-        public override bool CanUseKillButton(PlayerControl pc) => true; // Ensure this returns true
-
+        public override bool CanUseKillButton(PlayerControl pc) => true; 
         public override bool OnCheckMurderAsTarget(PlayerControl killer, PlayerControl target)
         {
             if (killer == target || AbilityLimit <= 0) return true;
@@ -80,18 +72,16 @@ namespace TOHE.Roles.Neutral
             if (killer.Is(CustomRoles.Jinx)) return true;
             if (killer.Is(CustomRoles.CursedWolf)) return true;
             if (killer.Is(CustomRoles.Provocateur)) return true;
-
-            // Block the kill and apply cooldown adjustment
+            
             killer.RpcGuardAndKill(target);
             target.RpcGuardAndKill(target);
-
-            // Adjust the killer's cooldown
-            float newCooldown = Math.Clamp(NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat(), 0f, MaxKillCooldown.GetFloat());
+            
+           
+            float newCooldown = Math.Clamp(NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat(), MaxKillCooldown.GetFloat(), MaxKillCooldown.GetFloat());
             NowCooldown[killer.PlayerId] = newCooldown;
             killer.ResetKillCooldown();
             killer.SyncSettings();
 
-            // Decrease ability limit and send the skill RPC
             AbilityLimit -= 1;
             SendSkillRPC();
 
