@@ -77,10 +77,10 @@ namespace TOHE.Roles.Neutral
             target.RpcGuardAndKill(target);
             
            
-            float newCooldown = Math.Clamp(NowCooldown[killer.PlayerId] + IncreaseKillCooldown.GetFloat(), MaxKillCooldown.GetFloat(), MaxKillCooldown.GetFloat());
+            float newCooldown = Math.Clamp(NowCooldown[target.PlayerId] + IncreaseKillCooldown.GetFloat(), MaxKillCooldown.GetFloat(), MaxKillCooldown.GetFloat());
             NowCooldown[killer.PlayerId] = newCooldown;
-            killer.ResetKillCooldown();
-            killer.SyncSettings();
+            target.ResetKillCooldown();
+            target.SyncSettings();
 
             AbilityLimit -= 1;
             SendSkillRPC();
